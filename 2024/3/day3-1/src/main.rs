@@ -1,4 +1,4 @@
-use std::{fs, os::windows::fs::symlink_dir};
+use std::fs;
 
 fn main() {
     let input: String = fs::read_to_string("input.txt").unwrap();
