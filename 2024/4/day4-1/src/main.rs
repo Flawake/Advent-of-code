@@ -4,7 +4,6 @@ use std::fs;
 fn main() -> Result<(), Box<dyn Error>> {
     let input: String = fs::read_to_string("input.txt")?;
     let ans = calculate(&input);
-    //let ans = check_safe_count_2(data);
     println!("{}", ans);
     Ok(())
 }
