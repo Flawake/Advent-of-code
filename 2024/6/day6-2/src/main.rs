@@ -57,12 +57,10 @@ fn calculate(input: Vec<Vec<i32>>) -> i32 {
     count
 }
 
-fn simulate_route(input: Vec<Vec<i32>>, guard_begin_pos: (i32, i32)) -> bool {
+fn simulate_route(input: Vec<Vec<i32>>, mut guard_pos: (i32, i32)) -> bool {
     //130, 130
 
     let mut turn_points: Vec<(i32, i32)> = vec![];
-
-    let mut guard_pos = guard_begin_pos;
 
     let mut t = (0, 0);
 
