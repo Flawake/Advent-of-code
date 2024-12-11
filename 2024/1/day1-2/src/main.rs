@@ -47,30 +47,20 @@ fn parse_input(input: Vec<String>) -> (Vec<i64>, Vec<i64>){
 }
 
 fn calculate_total_difference(row_one: Vec<i64>, row_two: Vec<i64>) -> i64 {
-    let mut total = 0;
-    for (i, val) in row_one.iter().enumerate() {
-        if val > &row_two[i] {
-            total += val - row_two[i];
-        }
-        else {
-            total += row_two[i] - val;
-        }
-    }
-
-    return total
+    row_one.iter().enumerate().fold(0, |acc, (i, val)| {
+        acc + (val - row_two[i]).abs()
+    })
 }
 
 fn calculate_similarity_score(row_one: &Vec<i64>, row_two: &Vec<i64>) -> i64 {
-    let mut total = 0;
-    for val1 in row_one.iter() {
-        let mut equal_count = 0;
-        for val2 in row_two.iter() {
+    row_one.iter().fold(0, |acc, &val1| {
+        acc + (row_two.iter().fold(0, |acc, &val2| {
             if val1 == val2 {
-                equal_count += 1;
+             acc + 1   
             }
-        }
-        total += val1 * equal_count;
-    }
-
-    return total
+            else {
+                acc
+            }
+        }) * val1)
+    })
 }
