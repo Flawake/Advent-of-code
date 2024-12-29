@@ -89,8 +89,6 @@ fn calculate(secrets: &[u64]) -> u32 {
     res as u32
 }
 
-//963 too low
-
 fn mix_numbers(secret: &u64, new: &u64) -> u64 {
     secret ^ new
 }

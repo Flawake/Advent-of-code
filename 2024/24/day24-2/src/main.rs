@@ -176,11 +176,11 @@ fn tokenize(input: &String) -> Result<Vec<Token>, std::io::Error> {
     Ok(tokens)
 }
 
+//Generated a .DOT file and just searched for the 8 pairs manually
 fn calculate(program: Vec<Instruction>) {
     let mut graph = DiGraph::<String, String>::new();
-    let mut node_map = HashMap::new(); // Map register name -> NodeIndex
+    let mut node_map = HashMap::new();
 
-    // Build the graph
     for (i, instruction) in program.iter().enumerate() {
         let operand = &(instruction.operand.clone().to_string() + &i.to_string());
         let nodes = vec![
@@ -190,7 +190,6 @@ fn calculate(program: Vec<Instruction>) {
             &instruction.register_out,
         ];
 
-        // Ensure all nodes exist in the graph
         for reg in nodes {
             if !node_map.contains_key(reg) {
                 let node_index = graph.add_node(reg.clone());
@@ -198,7 +197,6 @@ fn calculate(program: Vec<Instruction>) {
             }
         }
 
-        // Add edges for the instruction
         let a_idx = node_map[&instruction.register_a];
         let b_idx = node_map[&instruction.register_b];
         let gate = node_map[&(instruction.operand.clone().to_string() + &i.to_string())];
@@ -209,11 +207,9 @@ fn calculate(program: Vec<Instruction>) {
         graph.add_edge(gate, out_idx, instruction.operand.to_string().clone());
     }
 
-    // Export graph to DOT format
     let dot_graph = Dot::with_config(&graph, &[Config::EdgeNoLabel]);
     println!("{}", dot_graph);
 
-    // Save the DOT graph to a file (optional)
     std::fs::write("graph.dot", format!("{}", dot_graph)).expect("Unable to write file");
 
     println!("DOT file saved as 'graph.dot'. Use Graphviz or an online viewer to render.");

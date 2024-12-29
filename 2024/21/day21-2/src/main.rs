@@ -393,16 +393,18 @@ fn calculate(
     fastest_directional_routes: HashMap<Path, Routes>,
     numeric_keys: &Table,
     directional_keys: &Table,
-) -> u32 {
+) -> u64 {
+    let mut memoized = HashMap::new();
     input.iter().fold(0, |acc, line| {
         acc + (find_most_efficient_path(
             0,
-            3,
+            26,
             line.chars().collect(),
             &fastest_numeric_routes,
             &fastest_directional_routes,
             &numeric_keys,
             &directional_keys,
+            &mut memoized
         ) * code_to_numeric(line))
     })
 }
@@ -415,7 +417,8 @@ fn find_most_efficient_path(
     fastest_directional_routes: &HashMap<Path, Routes>,
     numeric_keys: &Table,
     directional_keys: &Table,
-) -> u32 {
+    memoized: &mut HashMap<(Vec<char>, u8), u64>,
+) -> u64 {
     let mut input = vec!['A'];
     input.append(&mut route.clone());
     if depth != 0 {
@@ -423,9 +426,9 @@ fn find_most_efficient_path(
     }
     if depth == max_depth {
         if depth != 0 {
-            return input.len() as u32 - 1;
+            return input.len() as u64 - 1;
         }
-        return input.len() as u32;
+        return input.len() as u64;
     }
     let table = if depth == 0 {
         numeric_keys
@@ -470,15 +473,21 @@ fn find_most_efficient_path(
                             }
                         })
                         .collect::<Vec<char>>();
-                    find_most_efficient_path(
+                    if let Some(mem) = memoized.get(&(route.clone(), depth)) {
+                        return *mem;
+                    }
+                    let points = find_most_efficient_path(
                         depth + 1,
                         max_depth,
-                        route,
+                        route.clone(),
                         &fastest_numeric_routes,
                         &fastest_directional_routes,
                         numeric_keys,
                         directional_keys,
-                    )
+                        memoized,
+                    );
+                    memoized.insert((route, depth), points);
+                    points
                 })
                 .min()
                 .unwrap()
@@ -488,11 +497,11 @@ fn find_most_efficient_path(
     score
 }
 
-fn code_to_numeric(code: &String) -> u32 {
+fn code_to_numeric(code: &String) -> u64 {
     code.chars()
         .into_iter()
         .filter(|c| c.is_numeric())
-        .map(|c| c.to_digit(10).unwrap())
+        .map(|c| c.to_digit(10).unwrap() as u64)
         .fold(0, |acc, num| acc * 10 + num)
 }
 
