@@ -1,5 +1,5 @@
 {
-  description = "Advent of Code solutions by SemPruijs";
+  description = "Advent of Code solutions by Flawake";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
