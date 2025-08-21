@@ -1,24 +1,75 @@
-enum TokenType<'a> {
-    Literal(&'a str),
-    Int(u32),
+#[derive(PartialEq, Eq)]
+enum Keyword {
+    Turn,
+    Toggle,
+    On,
+    Off,
+    Through,
 }
 
-struct Tokens<'a> (Vec<TokenType<'a>>);
+impl TryFrom<&str> for Keyword {
+    type Error = ();
 
-impl<'a> From<&'a str> for TokenType<'a> {
-    fn from(value: &'a str) -> Self {
-        if let Ok(val) = value.parse::<u32>() {
-            return TokenType::Int(val)
-        }
-        else {
-            return TokenType::Literal(value)
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "Turn" => Ok(Keyword::Turn),
+            "Toggle" => Ok(Keyword::Toggle),
+            "On" => Ok(Keyword::On),
+            "Off" => Ok(Keyword::Off),
+            "Through" => Ok(Keyword::Through),
+            _ => Err(())
         }
     }
 }
 
-impl<'a> FromIterator for Tokens<'a> {
-    fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
-        todo!()
+#[derive(PartialEq, Eq)]
+enum TokenType<'a> {
+    Keyword(Keyword),
+    Int(u32),
+    Comma,
+    BlankChar,
+    Literal(&'a str),
+}
+
+struct Tokens<'a> (Vec<TokenType<'a>>);
+
+impl<'a> Tokens<'a> {
+    fn new() -> Self {
+        Tokens(Vec::new())
+    }
+}
+
+impl<'a> TokenType<'a> {
+    fn try_make_tokentype(token: &'a str) -> Result<Self, ()> {
+        if let Ok(keyword) = Keyword::try_from(token) {
+            return Ok(TokenType::Keyword(keyword));
+        }
+        Err(())
+    }
+}
+
+impl<'a> TryFrom<&'a str> for TokenType<'a> {
+    type Error = ();
+    fn try_from(value: &'a str) -> Result<TokenType<'_>, Self::Error> {
+        if let Ok(keyword) = Keyword::try_from(value) {
+            return Ok(TokenType::Keyword(keyword));
+        }
+        if let Ok(val_u32) = value.parse::<u32>() {
+            return Ok(TokenType::Int(val_u32));
+        }
+        if value == "," {
+            return Ok(TokenType::Comma);
+        }
+        if matches!(value, " " | "\n" | "\r" | "\t" | "\r\n") {
+            return Ok(TokenType::BlankChar);
+        }
+        return Ok(Self::Literal(value));
+    }
+}
+
+impl<'a> FromIterator<TokenType<'a>> for Tokens<'a> {
+    fn from_iter<T: IntoIterator<Item = TokenType<'a>>>(iter: T) -> Self {
+        iter.into_iter().collect()
     }
 }
 
@@ -28,11 +79,28 @@ fn main() {
 }
 
 fn tokenize(input: &'static str) -> Tokens {
-    input.split_whitespace().map(|str| str.into()).collect()
+    let mut start_pointer = 0;
+    let mut tokens = Tokens::new();
+    for (i, c) in input.char_indices() {
+        // We should convert the strslice to a token and increase the start pointer if one of these conditions are met, unless otherwise specified
+        // current char is a blankchar
+        // current char is a comma
+        if let Ok(token) = input[i..i].try_into() {
+            if token == TokenType::BlankChar || token == TokenType::Comma  {
+                let current_string = &input[start_pointer..i - 1];
+                if let Ok(first_token) = current_string.try_into() {
+                    start_pointer = i + 1;
+                    tokens.0.push(first_token);
+                    if i == input.len() {
+                        tokens.0.push(token);
+                    }
+                }
+            }
+        }
+    }
+    tokens
 }
 
 fn calculate(input: &'static str) -> u32 {
-    input
-        .lines()
-        .fold(0, |acc, line| acc + is_string_nice(line) as u32)
+    0
 }
